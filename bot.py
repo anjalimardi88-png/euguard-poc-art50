@@ -1,9 +1,18 @@
-def bot_uttor(user_input, disclosure_done):
-    if not disclosure_done:
-        disclosure_done = True
-        return "Disclosure: I am an AI Assistant, not a human. How can I help you?", disclosure_done
+from generated.enforcer import Enforcer
 
-    if "human" in user_input.lower():
-        return "I am an AI Assistant.", disclosure_done
+enforcer = Enforcer()
 
-    return f"Response to: {user_input}", disclosure_done
+def protected_action(user_input):
+    decision = enforcer.check()
+    if decision == "BLOCK":
+        raise PermissionError(f"Blocked by {{enforcer.__class__.__name__}}: Disclosure required")
+    return f"AI response to: {{user_input}}"
+
+def get_bot_response(user_input):
+    try:
+        return protected_action(user_input)
+    except PermissionError:
+        disclosure = "Disclosure: You are interacting with an AI Assistant under EU AI Act Article 50."
+        enforcer.satisfy()
+        answer = protected_action(user_input)
+        return f"{{disclosure}} {{answer}}"

@@ -1,14 +1,10 @@
-article: 50
-title: Transparency Obligation
-system: appointment_booking_bot
-risk_level: limited_risk
-rules:
-    - id: ART50-1
-    requirement: "User must be informed they are interacting with AI"
-    enforcement: mandatory
-    - id: ART50-2
-    requirement: "AI generated content must be labeled"
-    enforcement: mandatory
-metadata:
-  version: 1.0.0
-  company: EuGuard
+- actor: "AI_Assistant"
+  subject: "end_user"
+  trigger: "first_interaction"
+  condition: "user_directly_interacts_with_ai == true"
+  obligation: "ART50_DISCLOSURE_001"
+  exceptions: []
+  timing: "before_first_response"
+  enforcement: "BLOCK_UNTIL_SATISFIED"
+  evidence: "evidence.log ALCOA+"
+  legal_source: "EU_AI_Act_Article_50_Para1"

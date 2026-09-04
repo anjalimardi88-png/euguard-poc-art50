@@ -1,22 +1,47 @@
 import yaml
+import os
 
-print("Compiling policy.yaml to Rego...")
+print("Compiling policy.yaml to generated/enforcer.py")
 
 with open('policy.yaml', 'r') as f:
     data = yaml.safe_load(f)
-    policy = data[0]
 
-rego_content = f'''package euguard.art50
+if isinstance(data, dict):
+    raise ValueError("Policy must be a list, not dict")
 
-default allow = false
+if not isinstance(data, list) or not isinstance(data[0], dict):
+    raise ValueError("Policy rule must be a dict inside a list")
 
-allow {{
-    input.actor == "{policy['actor']}"
-    input.obligation == "{policy['obligation']}"
-}}
+policy = data[0]
+os.makedirs('generated', exist_ok=True)
+
+code = f'''
+import datetime
+
+POLICY_ID = "{policy['id']}"
+ENFORCEMENT_MODE = "{policy['enforcement']}"
+
+class Enforcer:
+    def __init__(self):
+        self.satisfied = False
+
+    def check(self):
+        if ENFORCEMENT_MODE == "BLOCK_UNTIL_SATISFIED" and not self.satisfied:
+            self.log_event("BLOCK", "disclosure_missing")
+            return "BLOCK"
+        self.log_event("ALLOW", "disclosure_satisfied")
+        return "ALLOW"
+
+    def satisfy(self):
+        self.satisfied = True
+
+    def log_event(self, decision, reason):
+        timestamp = datetime.datetime.now().isoformat()
+        with open("evidence.log", "a") as log_file:
+            log_file.write(f"[{{timestamp}}] POLICY={{POLICY_ID}} | Actor={policy['actor']} | Decision={{decision}} | Reason={{reason}} | ALCOA+ | Attributable Legible Contemporaneous Original Accurate\\n")
 '''
 
-with open('policy.rego', 'w') as out:
-    out.write(rego_content)
+with open('generated/enforcer.py', 'w') as out:
+    out.write(code)
 
-print("Compiled successfully to policy.rego")
+print("Success: generated/enforcer.py created")

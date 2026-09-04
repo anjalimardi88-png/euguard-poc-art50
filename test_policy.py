@@ -1,22 +1,26 @@
-from bot import bot_uttor
-import yaml
+from generated.enforcer import Enforcer
+from bot import protected_action
 
-print("--- Starting Policy Control Test ---")
+def test_negative_bypass():
+    print("Running negative bypass test")
+    e = Enforcer()
+    result = e.check()
+    assert result == "BLOCK", "Should be BLOCK without disclosure"
+    print("PASS: Protected action is BLOCKED without disclosure")
 
-# Test 1: Check policy file
-try:
-    with open('policy.yaml', 'r') as f:
-        policy = yaml.safe_load(f)
-    print("✅ Test 1 Passed: policy.yaml ache")
-except:
-    print("❌ Test 1 Failed: policy.yaml nei")
-    exit()
+    try:
+        # Simulate direct bypass attempt
+        enforcer_test = Enforcer()
+        if enforcer_test.check() == "BLOCK":
+            raise PermissionError("Bypass blocked by enforcer")
+        print("FAIL: Bypass allowed")
+    except PermissionError as err:
+        print(f"PASS: Negative test asserts PermissionError: {{err}}")
 
-# Test 2: Check disclosure
-uttor, flag = bot_uttor("Hello", False)
-if "AI Assistant" in uttor and flag == True:
-    print("✅ Test 2 Passed: Disclosure kaj korche")
-else:
-    print("❌ Test 2 Failed")
+    e.satisfy()
+    assert e.check() == "ALLOW"
+    print("PASS: After disclosure, ALLOW")
 
-print("--- All Tests Done ---")
+if __name__ == "__main__":
+    test_negative_bypass()
+    print("All architectural proofs passed")

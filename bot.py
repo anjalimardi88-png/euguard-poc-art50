@@ -1,31 +1,9 @@
-import yaml
-import datetime
+def bot_uttor(user_input, disclosure_done):
+    if not disclosure_done:
+        disclosure_done = True
+        return "Disclosure: I am an AI Assistant, not a human. How can I help you?", disclosure_done
 
-POLICY_FILE = "policy.yaml"
-EVIDENCE_FILE = "evidence.log"
+    if "human" in user_input.lower():
+        return "I am an AI Assistant.", disclosure_done
 
-def load_policy():
-    with open(POLICY_FILE, 'r') as f:
-        data = yaml.safe_load(f)
-        return data[0]
-
-def log_evidence(ghotona):
-    somoy = datetime.datetime.utcnow().isoformat()
-    lekha = f"{somoy} | {ghotona} | ALCOA+\n"
-    with open(EVIDENCE_FILE, 'a') as log:
-        log.write(lekha)
-    print(f"[PROMAN JOMA HOLO] {lekha}")
-
-def bot_uttor(user_kotha, disclosure_hoeche=False):
-    policy = load_policy()
-    if not disclosure_hoeche and policy['enforcement'] == "BLOCK_UNTIL_SATISFIED":
-        disclosure = f"DISCLOSURE [{policy['legal_source']}]: Apni ekjon AI Assistant ({policy['actor']}) er sathe kotha bolchen."
-        log_evidence(f"{policy['obligation']} - {policy['trigger']} te trigger holo")
-        return disclosure, True
-    return f"Bot er Uttor: {user_kotha}", disclosure_hoeche
-
-if __name__ == "__main__":
-    disclosure = False
-    msg = "Hello"
-    uttor, disclosure = bot_uttor(msg, disclosure)
-    print(uttor)
+    return f"Response to: {user_input}", disclosure_done

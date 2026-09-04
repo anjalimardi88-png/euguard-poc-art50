@@ -1,11 +1,5 @@
-from bot import bot_uttor
+from bot import get_bot_response
 
-disclosure_done = False
-print("EU-Guard Bot Started (type 'exit' to stop)")
-
-while True:
-    user_input = input("You: ")
-    if user_input == "exit":
-        break
-    response, disclosure_done = bot_uttor(user_input, disclosure_done)
-    print(response)
+if __name__ == "__main__":
+    print(get_bot_response("Hello"))
+    print(get_bot_response("Second message"))

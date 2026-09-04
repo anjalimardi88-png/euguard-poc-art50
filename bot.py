@@ -1,25 +1,31 @@
-# EuGuard POC - Article 50 Enforcement
 import yaml
+import datetime
 
-# Load policy
-with open('policy.yaml', 'r') as f:
-    policy = yaml.safe_load(f)
+POLICY_FILE = "policy.yaml"
+EVIDENCE_FILE = "evidence.log"
 
-def get_bot_response(user_query):
-    # Mandatory Article 50 Disclosure
-    disclosure = policy['rules']['disclosure_text']
-    
-    # Simulated Appointment Booking
-    response = f"{disclosure}\n\nHello! I can help you book an appointment. You said: {user_query}"
-    
-    # Mandatory Logging as per policy
-    log_entry = f"LOG: User interaction logged for compliance - Query: {user_query}"
-    print(log_entry)
-    
-    return response
+def load_policy():
+    with open(POLICY_FILE, 'r') as f:
+        data = yaml.safe_load(f)
+        return data[0]
 
-# Example Usage
+def log_evidence(ghotona):
+    somoy = datetime.datetime.utcnow().isoformat()
+    lekha = f"{somoy} | {ghotona} | ALCOA+\n"
+    with open(EVIDENCE_FILE, 'a') as log:
+        log.write(lekha)
+    print(f"[PROMAN JOMA HOLO] {lekha}")
+
+def bot_uttor(user_kotha, disclosure_hoeche=False):
+    policy = load_policy()
+    if not disclosure_hoeche and policy['enforcement'] == "BLOCK_UNTIL_SATISFIED":
+        disclosure = f"DISCLOSURE [{policy['legal_source']}]: Apni ekjon AI Assistant ({policy['actor']}) er sathe kotha bolchen."
+        log_evidence(f"{policy['obligation']} - {policy['trigger']} te trigger holo")
+        return disclosure, True
+    return f"Bot er Uttor: {user_kotha}", disclosure_hoeche
+
 if __name__ == "__main__":
-    print(get_bot_response("I need a doctor appointment"))
-    print("\n--- Policy Control Proved ---")
-    print("This bot cannot answer without Article 50 disclosure")
+    disclosure = False
+    msg = "Hello"
+    uttor, disclosure = bot_uttor(msg, disclosure)
+    print(uttor)

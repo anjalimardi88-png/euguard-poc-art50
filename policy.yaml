@@ -1,10 +1,11 @@
-- actor: "AI_Assistant"
-  subject: "end_user"
-  trigger: "first_interaction"
-  condition: "user_directly_interacts_with_ai == true"
-  obligation: "ART50_DISCLOSURE_001"
-  exceptions: []
-  timing: "before_first_response"
-  enforcement: "BLOCK_UNTIL_SATISFIED"
-  evidence: "evidence.log ALCOA+"
-  legal_source: "EU_AI_Act_Article_50_Para1"
+- id: ART50_DISCLOSURE_001
+  actor: AI Agent
+  subject: End User
+  trigger: first_interaction
+  condition: user_directly_interacts_with_ai
+  obligation: disclose_ai_identity
+  exceptions: none
+  timing: before_response
+  enforcement: BLOCK_UNTIL_SATISFIED
+  evidence: evidence.log
+  legal_source: EU AI Act Article 50 v1

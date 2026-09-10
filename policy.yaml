@@ -5,7 +5,7 @@ actor: deployer
 trigger: first_interaction
 condition:user_directly_interacts_with_ai
 obligation: SHOW_AI_DISCLOSURE
-enforcement: WORN_ONLY
+enforcement: WARN_ONLY
 exceptions: [research_mode, internal_testing]
 timing: before_first_output
 legal_source: "EU AI Act Art 50.1 - AI Interaction Transparency"

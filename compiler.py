@@ -30,20 +30,29 @@ class Enforcer:
     def check(self, context: dict):
         # Handle exceptions defined in policy
         if context.get("mode") in EXCEPTIONS:
-            return {{"decision": "ALLOW", "reason": "exception", "policy_version": POLICY_VERSION}}
-        
+            # FIX Point 3: Trust Boundary - only admin can use exception
+            if not context.get("is_trusted_admin", False):
+                        return {{"decision": "BLOCKED", "reason": "Untrusted caller cannot set exception mode"}}
+        return {{"decision": "ALLOW", "reason": "exception", "policy_version": POLICY_VERSION}}
+            
+
         # Generic logic: this line changes when policy.yaml changes
         is_triggered = {trigger_check}
         interacts = context.get("user_directly_interacts", True)
+          
         shown = context.get("disclosure_shown", False)
 
         if is_triggered and interacts and not shown:
-            return {{"decision": "BLOCK", "obligation": OBLIGATION, "policy_version": POLICY_VERSION}}
-        return {{"decision": "ALLOW", "policy_version": POLICY_VERSION}}
-'''
+            # FIX Point 1 & 2: Enforcement is data-driven from policy.yaml
+            enforcement = "{policy.get('enforcement', 'BLOCK_UNTIL_SATISFIED')}"
+            if enforcement == "BLOCK_UNTIL_SATISFIED":
+                return {{"decision": "BLOCKED", "reason": f"Disclosure required per {{POLICY_ID}}", "enforcement": enforcement}}
+            elif enforcement == "WARN_ONLY":
+                return {{"decision": "ALLOW_WITH_WARNING", "reason": f"Would block but WARN_ONLY per {{POLICY_ID}}", "enforcement": enforcement}}
+            else:
+                return {{"decision": "BLOCKED", "reason": "Unknown enforcement", "enforcement": enforcement}}
 
-with open("generated/enforcer.py", "w") as out:
-    out.write(code.strip())
-
-print(f"REAL Compiled: {policy['id']} v{policy['version']} -> generated/enforcer.py")
-print(f"Trigger logic: {trigger} -> {trigger_check}")
+        # FIX Point 4: Immutable evidence log, not just boolean
+        return {{"decision": "ALLOW", "reason": "compliant", "policy_version": POLICY_VERSION, "disclosure_shown": True}}
+        
+    

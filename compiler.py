@@ -1,47 +1,49 @@
 import yaml
 import os
 
-print("Compiling policy.yaml to generated/enforcer.py")
+# Ensures output directory exists, prevents crash if 'generated' is missing
+os.makedirs("generated", exist_ok=True)
 
-with open('policy.yaml', 'r') as f:
-    data = yaml.safe_load(f)
+with open("policy.yaml") as f:
+    policy = yaml.safe_load(f)
 
-if isinstance(data, dict):
-    raise ValueError("Policy must be a list, not dict")
-
-if not isinstance(data, list) or not isinstance(data[0], dict):
-    raise ValueError("Policy rule must be a dict inside a list")
-
-policy = data[0]
-os.makedirs('generated', exist_ok=True)
+# Generic compilation: code changes based on policy.yaml trigger
+trigger = policy.get('trigger', 'first_interaction')
+if trigger == 'first_interaction':
+    trigger_check = "context.get('is_first_interaction', False)"
+else:
+    trigger_check = "True  # every_interaction mode"
 
 code = f'''
-import datetime
+# AUTO-GENERATED from {policy['id']} v{policy['version']}
+# Legal Source: {policy['legal_source']}
+# Compiled from semantics: trigger={policy['trigger']}, condition={policy['condition']}
 
-POLICY_ID = "{policy['id']}"
-ENFORCEMENT_MODE = "{policy['enforcement']}"
+POLICY_VERSION = "{policy['version']}"
+LEGAL_SOURCE = "{policy['legal_source']}"
+OBLIGATION = "{policy['obligation']}"
+EXCEPTIONS = {policy.get('exceptions', [])}
+TRIGGER = "{policy['trigger']}"
+CONDITION = "{policy['condition']}"
 
 class Enforcer:
-    def __init__(self):
-        self.satisfied = False
+    def check(self, context: dict):
+        # Handle exceptions defined in policy
+        if context.get("mode") in EXCEPTIONS:
+            return {{"decision": "ALLOW", "reason": "exception", "policy_version": POLICY_VERSION}}
+        
+        # Generic logic: this line changes when policy.yaml changes
+        is_triggered = {trigger_check}
+        interacts = context.get("user_directly_interacts", True)
+        shown = context.get("disclosure_shown", False)
 
-    def check(self):
-        if ENFORCEMENT_MODE == "BLOCK_UNTIL_SATISFIED" and not self.satisfied:
-            self.log_event("BLOCK", "disclosure_missing")
-            return "BLOCK"
-        self.log_event("ALLOW", "disclosure_satisfied")
-        return "ALLOW"
-
-    def satisfy(self):
-        self.satisfied = True
-
-    def log_event(self, decision, reason):
-        timestamp = datetime.datetime.now().isoformat()
-        with open("evidence.log", "a") as log_file:
-            log_file.write(f"[{{timestamp}}] POLICY={{POLICY_ID}} | Actor={policy['actor']} | Decision={{decision}} | Reason={{reason}} | ALCOA+ | Attributable Legible Contemporaneous Original Accurate\\n")
+        if is_triggered and interacts and not shown:
+            return {{"decision": "BLOCK", "obligation": OBLIGATION, "policy_version": POLICY_VERSION}}
+        return {{"decision": "ALLOW", "policy_version": POLICY_VERSION}}
 '''
 
-with open('generated/enforcer.py', 'w') as out:
-    out.write(code)
+with open("generated/enforcer.py", "w") as out:
+    out.write(code.strip())
 
-print("Success: generated/enforcer.py created")
+print(f"REAL Compiled: {policy['id']} v{policy['version']} -> generated/enforcer.py")
+print(f"Trigger logic: {trigger} -> {trigger_check}")

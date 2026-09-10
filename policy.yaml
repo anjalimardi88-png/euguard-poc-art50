@@ -1,11 +1,11 @@
-- id: ART50_DISCLOSURE_001
-  actor: AI Agent
-  subject: End User
-  trigger: first_interaction
-  condition: user_directly_interacts_with_ai
-  obligation: disclose_ai_identity
-  exceptions: none
-  timing: before_response
-  enforcement: BLOCK_UNTIL_SATISFIED
-  evidence: evidence.log
-  legal_source: EU AI Act Article 50 v1
+id: EU-AI-Act-Article-50
+version: "1.0.1"
+subject: general-purpose-ai-bot
+actor: deployer
+trigger: first_interaction
+condition:user_directly_interacts_with_ai
+obligation: SHOW_AI_DISCLOSURE
+enforcement: BLOCK_UNTIL_SATISFIED
+exceptions: [research_mode, internal_testing]
+timing: before_first_output
+legal_source: "EU AI Act Art 50.1 - AI Interaction Transparency"
